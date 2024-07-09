@@ -1,46 +1,99 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/ApiError.js"
 import { User} from "../models/user.model.js"
+import {UserVerification} from "../models/userVerification.model.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
+import nodemailer from "nodemailer";
+import { v4 as uuidv4 } from "uuid";
+import bcrypt from "bcrypt";
 
 
-const generateAccessAndRefereshTokens = async(userId) =>{
+const generateAccessToken = async(userId) =>{
     try {
         const user = await User.findById(userId)
         const accessToken = user.generateAccessToken()
-        const refreshToken = user.generateRefreshToken()
 
-        user.refreshToken = refreshToken
-        await user.save({ validateBeforeSave: false })
-
-        return {accessToken, refreshToken}
-
-
+        return accessToken;
+        
     } catch (error) {
         throw new ApiError(500, "Something went wrong while generating referesh and access token")
     }
 }
 
+// nodemailer stuff
+const transporter = nodemailer.createTransport({
+    service:"gmail",
+    auth:{
+        user:process.env.AUTH_EMAIL,
+        pass:process.env.AUTH_PASS,
+    }
+})
+
+// testing success
+transporter.verify((error,success)=>{
+    if(error){
+        console.log(error);
+    }else{
+        console.log("Ready for messages");
+        console.log(success);
+    }
+})
+
+const sendVerificationEmail = asyncHandler( async ({_id,email},res) => {
+
+   // URL to be used in email
+   const currentUrl = "http://localhost:8000/";
+
+   const uniqueString = uuidv4() + _id;
+
+    // Mail options
+    const mailOptions = {
+        from: process.env.AUTH_EMAIL,
+        to: email,
+        subject: "Verify Your Email",
+        html: `<p>Verify your email address to complete the signup and login into your account.</p>
+               <p>This link <b>expires in 5 minutes</b>.</p>
+               <p>Press <a href=${currentUrl + "user/verify/" + _id + "/" + uniqueString}>here</a> to proceed.</p>`
+    };
+    
+    const hashedUniqueString = await bcrypt.hash(uniqueString,10);
+
+    if(hashedUniqueString){
+        const newVerification = await UserVerification.create({
+            userId: _id,
+            uniqueString: hashedUniqueString,
+            expiresAt: Date.now() + 300000, // 5 minutes
+        })
+
+        if(newVerification){
+            const verificationLinkSent = await transporter.sendMail(mailOptions);
+
+            if(verificationLinkSent){
+                return res.status(201).json(
+                    new ApiResponse(200,"Verification email sent successfully")
+                )
+            }
+            else{
+                throw new ApiError(400,"Verification email failed")
+            }
+        }
+        else{
+            throw new ApiError(400,"Couldn't save verification email data!")
+        }
+    }
+    else{
+        throw new ApiError(400,"An error occurred while hashing email data!")
+    }
+})
+
 const registerUser = asyncHandler( async (req, res) => {
-    // get user details from frontend
-    // validation - not empty
-    // check if user already exists: username, email
-    // check for images, check for avatar
-    // upload them to cloudinary, avatar
-    // create user object - create entry in db
-    // remove password and refresh token field from response
-    // check for user creation
-    // return res
-
-
-    const {fullName, email, username, password } = req.body
-    //console.log("email: ", email);
-
+    const {email, username, password } = req.body
+    
     if (
-        [fullName, email, username, password].some((field) => field?.trim() === "")
+        [email, username, password].some((field) => field?.trim() === "")
     ) {
         throw new ApiError(400, "All fields are required")
     }
@@ -52,51 +105,21 @@ const registerUser = asyncHandler( async (req, res) => {
     if (existedUser) {
         throw new ApiError(409, "User with email or username already exists")
     }
-    //console.log(req.files);
-
-    const avatarLocalPath = req.files?.avatar[0]?.path;
-    //const coverImageLocalPath = req.files?.coverImage[0]?.path;
-
-    let coverImageLocalPath;
-    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
-        coverImageLocalPath = req.files.coverImage[0].path
-    }
     
-    
-
-    if (!avatarLocalPath) {
-        throw new ApiError(400, "Avatar file is required")
-    }
-
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
-
-    if (!avatar) {
-        throw new ApiError(400, "Avatar file is required")
-    }
-   
-
     const user = await User.create({
-        fullName,
-        avatar: avatar.url,
-        coverImage: coverImage?.url || "",
         email, 
         password,
-        username: username.toLowerCase()
+        username: username.toLowerCase(),
+        verified:false
     })
 
-    const createdUser = await User.findById(user._id).select(
-        "-password -refreshToken"
-    )
 
-    if (!createdUser) {
+    if (!user) {
         throw new ApiError(500, "Something went wrong while registering the user")
     }
 
-    return res.status(201).json(
-        new ApiResponse(200, createdUser, "User registered Successfully")
-    )
-
+    // Handle account verification
+    sendVerificationEmail(user,res);
 } )
 
 const loginUser = asyncHandler(async (req, res) =>{
@@ -107,10 +130,9 @@ const loginUser = asyncHandler(async (req, res) =>{
     //access and referesh token
     //send cookie
 
-    const {email, username, password} = req.body
-    console.log(email);
+    const {email,password} = req.body
 
-    if (!username && !email) {
+    if (!email) {
         throw new ApiError(400, "username or email is required")
     }
     
@@ -120,9 +142,7 @@ const loginUser = asyncHandler(async (req, res) =>{
         
     // }
 
-    const user = await User.findOne({
-        $or: [{username}, {email}]
-    })
+    const user = await User.findOne({email})
 
     if (!user) {
         throw new ApiError(404, "User does not exist")
@@ -131,12 +151,12 @@ const loginUser = asyncHandler(async (req, res) =>{
    const isPasswordValid = await user.isPasswordCorrect(password)
 
    if (!isPasswordValid) {
-    throw new ApiError(401, "Invalid user credentials")
+       throw new ApiError(401, "Invalid user credentials")
     }
 
-   const {accessToken, refreshToken} = await generateAccessAndRefereshTokens(user._id)
+   const accessToken = await generateAccessToken(user._id)
 
-    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+    const loggedInUser = await User.findById(user._id).select("-password")
 
     const options = {
         httpOnly: true,
@@ -145,8 +165,7 @@ const loginUser = asyncHandler(async (req, res) =>{
 
     return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("token", accessToken, options)
     .json(
         new ApiResponse(
             200, 
