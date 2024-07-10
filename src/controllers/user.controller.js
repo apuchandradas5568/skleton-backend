@@ -45,7 +45,7 @@ transporter.verify((error,success)=>{
 const sendVerificationEmail = asyncHandler( async ({_id,email},res) => {
 
    // URL to be used in email
-   const currentUrl = "http://localhost:8000/";
+   const currentUrl = "http://localhost:5173/";
 
    const uniqueString = uuidv4() + _id;
 
@@ -87,6 +87,41 @@ const sendVerificationEmail = asyncHandler( async ({_id,email},res) => {
     else{
         throw new ApiError(400,"An error occurred while hashing email data!")
     }
+})
+
+const verifyUser = asyncHandler(async (req,res) => {
+    const {userId,uniqueString} = req.params;
+
+    const userVerification = await UserVerification.findOne({userId});
+
+    if(!userVerification){
+        throw new ApiError(400, "Account doesn't exist or has been verified already. Please sign up or log in.");
+    }
+
+    const {expiresAt,uniqueString:hashedUniqueString} = userVerification;
+
+    if(expiresAt < Date.now()){
+        // Record has expired, so we delete it
+        await UserVerification.deleteOne({ userId });
+        await User.deleteOne({ _id: userId });
+        throw new ApiError(400, "Link has expired. Please sign up again.");
+    }
+
+    const isValidString = await bcrypt.compare(uniqueString,hashedUniqueString);
+
+    if (!isValidString) {
+        throw new ApiError(400, "Invalid verification details passed. Check your inbox.");
+    }
+
+    const updatedUser = await User.updateOne({ _id: userId }, { verified: true });
+
+    if (!updatedUser) {
+        throw new ApiError(400, "An error occurred while updating the user record to show verified.");
+    }
+
+    await UserVerification.deleteOne({ userId });
+
+    res.status(200).json(new ApiResponse(200, "User Verified Successfully"));
 })
 
 const registerUser = asyncHandler( async (req, res) => {
@@ -512,5 +547,6 @@ export {
     updateUserAvatar,
     updateUserCoverImage,
     getUserChannelProfile,
-    getWatchHistory
+    getWatchHistory,
+    verifyUser
 }
