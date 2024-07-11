@@ -11,10 +11,11 @@ import {
     getUserChannelProfile, 
     getWatchHistory, 
     updateAccountDetails,
-    verifyUser
+    verifyUser,
 } from "../controllers/user.controller.js";
 import {upload} from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { getWebData } from "../controllers/customization.controller.js";
 
 
 const router = Router()
@@ -37,5 +38,14 @@ router.route("/cover-image").patch(verifyJWT, upload.single("coverImage"), updat
 
 router.route("/c/:username").get(verifyJWT, getUserChannelProfile)
 router.route("/history").get(verifyJWT, getWatchHistory)
+
+
+
+
+// routes from apu
+router.route('/get-web-data').get(getWebData)
+
+
+
 
 export default router

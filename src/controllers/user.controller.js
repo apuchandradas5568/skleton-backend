@@ -9,6 +9,7 @@ import mongoose from "mongoose";
 import nodemailer from "nodemailer";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
+import { Home } from "../models/homedata.model.js";
 
 
 const generateAccessToken = async(userId) =>{
@@ -536,6 +537,8 @@ const getWatchHistory = asyncHandler(async(req, res) => {
 })
 
 
+
+
 export {
     registerUser,
     loginUser,
@@ -550,3 +553,5 @@ export {
     getWatchHistory,
     verifyUser
 }
+
+
