@@ -86,14 +86,20 @@ export const saveThemeData = asyncHandler(async (req, res, next) => {
 
 export const getWebData = asyncHandler(async(req,res,next) => {
 
-  console.log("jello");
-
   const lastCreatedHomeData = await Home.findOne().sort({ createdAt: -1 })
 
-  console.log(lastCreatedHomeData);
 
  return res.status(200).json(
   new ApiResponse(200, lastCreatedHomeData)
 )
 })
 
+export const getShopData = asyncHandler(async(req,res,next) => {
+
+
+  const shop = req.params.shop
+
+  console.log(shop);
+
+
+})

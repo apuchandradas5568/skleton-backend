@@ -15,7 +15,7 @@ import {
 } from "../controllers/user.controller.js";
 import {upload} from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-import { getWebData } from "../controllers/customization.controller.js";
+import { getShopData, getWebData } from "../controllers/customization.controller.js";
 
 
 const router = Router()
@@ -43,6 +43,7 @@ router.route("/history").get(verifyJWT, getWatchHistory)
 
 
 // routes from apu
+router.route('/get-shop-data/:shop').get(getShopData)
 router.route('/get-web-data').get(getWebData)
 
 
