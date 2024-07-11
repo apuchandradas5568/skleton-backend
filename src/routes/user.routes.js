@@ -11,9 +11,8 @@ import {
     getUserChannelProfile, 
     getWatchHistory, 
     updateAccountDetails,
-    verifyUser,
+    verifyUser
 } from "../controllers/user.controller.js";
-import {upload} from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { getWebData } from "../controllers/customization.controller.js";
 
@@ -25,6 +24,12 @@ router.route("/register").post(registerUser)
 router.route("/login").post(loginUser)
 
 router.route("/verify/:userId/:uniqueString").get(verifyUser)
+
+router.route("/forgot-password").post(forgotPassword)
+
+router.route("/reset-password/:userId/:token").get(resetPasswordGet)
+
+router.route("/reset-password/:userId/:token").post(resetPasswordPost)
 
 //secured routes
 router.route("/logout").post(verifyJWT,  logoutUser)
@@ -38,14 +43,5 @@ router.route("/cover-image").patch(verifyJWT, upload.single("coverImage"), updat
 
 router.route("/c/:username").get(verifyJWT, getUserChannelProfile)
 router.route("/history").get(verifyJWT, getWatchHistory)
-
-
-
-
-// routes from apu
-router.route('/get-web-data').get(getWebData)
-
-
-
 
 export default router
