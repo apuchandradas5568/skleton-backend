@@ -16,6 +16,9 @@ import {
 import {upload} from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { getShopData, getWebData } from "../controllers/customization.controller.js";
+import { addItemToCart, clearCart, getCart, updateCart } from "../controllers/cart.controllers.js";
+import { createOrder, getAllOrders, getMyOrders, getOrderById, updateOrderToDelivered, updateOrderToPaid } from "../controllers/order.controllers.js";
+import { createShippingAddress, deleteShippingAddress, getShippingAddressById, getUserShippingAddresses, updateShippingAddress } from "../controllers/shippingAddress.controller.js";
 
 
 const router = Router()
@@ -45,6 +48,33 @@ router.route("/history").get(verifyJWT, getWatchHistory)
 // routes from apu
 router.route('/get-shop-data/:shop').get(getShopData)
 router.route('/get-web-data').get(getWebData)
+
+
+// cart routes
+router.post('/cart',  addItemToCart);
+router.get('/cart', getCart);
+router.put('/cart', updateCart);
+router.delete('/cart', clearCart);
+
+
+// shipping address routes 
+router.post('/',  createShippingAddress);
+router.get('/',  getUserShippingAddresses);
+router.get('/:id',  getShippingAddressById);
+router.put('/:id',  updateShippingAddress);
+router.delete('/:id',  deleteShippingAddress);
+
+// orders routes 
+router.post('/', createOrder);
+router.get('/myorders', getMyOrders);
+router.get('/:id', getOrderById);
+router.put('/:id/pay', updateOrderToPaid);
+router.put('/:id/deliver', updateOrderToDelivered);
+router.get('/', getAllOrders);
+
+
+
+
 
 
 
