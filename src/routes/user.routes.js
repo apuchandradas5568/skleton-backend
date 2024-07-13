@@ -3,17 +3,12 @@ import {
     loginUser, 
     logoutUser, 
     registerUser, 
-    refreshAccessToken, 
-    changeCurrentPassword, 
-    getCurrentUser, 
-    updateUserAvatar, 
-    updateUserCoverImage, 
-    getUserChannelProfile, 
-    getWatchHistory, 
-    updateAccountDetails,
+    forgotPassword,
+    resetPasswordGet,
+    resetPasswordPost,
     verifyUser,
+    googleAuth
 } from "../controllers/user.controller.js";
-import {upload} from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { getShopData, getWebData } from "../controllers/customization.controller.js";
 import { addItemToCart, clearCart, getCart, updateCart } from "../controllers/cart.controllers.js";
@@ -27,7 +22,15 @@ router.route("/register").post(registerUser)
 
 router.route("/login").post(loginUser)
 
+router.route('/auth/google').post(googleAuth);
+
 router.route("/verify/:userId/:uniqueString").get(verifyUser)
+
+router.route("/forgot-password").post(forgotPassword)
+
+router.route("/reset-password/:userId/:token").get(resetPasswordGet)
+
+router.route("/reset-password/:userId/:token").post(resetPasswordPost)
 
 //secured routes
 router.route("/logout").post(verifyJWT,  logoutUser)
@@ -46,35 +49,7 @@ router.route("/history").get(verifyJWT, getWatchHistory)
 
 
 // routes from apu
-router.route('/get-shop-data/:shop').get(getShopData)
 router.route('/get-web-data').get(getWebData)
-
-
-// cart routes
-router.post('/cart',  addItemToCart);
-router.get('/cart', getCart);
-router.put('/cart', updateCart);
-router.delete('/cart', clearCart);
-
-
-// shipping address routes 
-router.post('/',  createShippingAddress);
-router.get('/',  getUserShippingAddresses);
-router.get('/:id',  getShippingAddressById);
-router.put('/:id',  updateShippingAddress);
-router.delete('/:id',  deleteShippingAddress);
-
-// orders routes 
-router.post('/', createOrder);
-router.get('/myorders', getMyOrders);
-router.get('/:id', getOrderById);
-router.put('/:id/pay', updateOrderToPaid);
-router.put('/:id/deliver', updateOrderToDelivered);
-router.get('/', getAllOrders);
-
-
-
-
 
 
 
