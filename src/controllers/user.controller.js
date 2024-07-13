@@ -195,7 +195,7 @@ const loginUser = asyncHandler(async (req, res) =>{
 
     return res
     .status(200)
-    .cookie("token", accessToken)
+    .cookie("token", accessToken,{httpOnly:true})
     .json(
         new ApiResponse(
             200, 
@@ -336,6 +336,60 @@ const resetPasswordPost = asyncHandler(async (req,res) =>{
     )
 })
 
+const googleAuth = asyncHandler(async (req,res) =>{
+    const {username,email}=req.body;
+    
+    const user = await User.findOne({email});
+
+    if(!user){
+        const generatedPassword =
+        Math.random().toString(36).slice(-8) +
+        Math.random().toString(36).slice(-8);
+        const hashedPassword = bcrypt.hashSync(generatedPassword, 10);
+
+        const newUser = await User.create({
+            username,
+            email,
+            password:hashedPassword,
+            verified:true
+        })
+
+        const accessToken = await generateAccessToken(newUser._id);
+
+        const loggedInUser = await User.findById(newUser._id).select("-password");
+
+        return res
+        .status(200)
+        .cookie("token", accessToken,{httpOnly:true})
+        .json(
+            new ApiResponse(
+                200, 
+                {
+                    user: loggedInUser, accessToken
+                },
+                "User logged In Successfully"
+            )
+        )
+    }
+    else{
+        const accessToken = await generateAccessToken(user._id);
+
+        const loggedInUser = await User.findById(user._id).select("-password");
+
+        return res
+        .status(200)
+        .cookie("token", accessToken,{httpOnly:true})
+        .json(
+            new ApiResponse(
+                200, 
+                {
+                    user: loggedInUser, accessToken
+                },
+                "User logged In Successfully"
+            )
+        )
+    }
+})
 
 export {
     registerUser,
@@ -344,7 +398,8 @@ export {
     verifyUser,
     forgotPassword,
     resetPasswordGet,
-    resetPasswordPost
+    resetPasswordPost,
+    googleAuth
 }
 
 
