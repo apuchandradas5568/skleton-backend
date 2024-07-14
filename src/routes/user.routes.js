@@ -21,6 +21,7 @@ import {
   removeFromCart,
 } from "../controllers/cart.controllers.js";
 import { createProduct, deleteProduct, getFeaturedProducts, getProductById, getProducts, updateProduct } from "../controllers/apu_product_controller.js";
+import { addToFavorites } from "../controllers/favorite.controller.js";
 
 const router = Router();
 
@@ -65,5 +66,8 @@ router.route('/featured-products').get(getFeaturedProducts )
 
 router.route('/add-cart').post(verifyJWT, addToCart )
 router.route('/get-cart').get(verifyJWT, getCart )
+
+
+router.route('/add-favorite').post(verifyJWT, addToFavorites )
 
 export default router;

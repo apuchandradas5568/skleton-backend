@@ -137,7 +137,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
 
 const getFeaturedProducts = async (req, res) => {
     try {
-      const featuredProducts = await ApuProduct.find({featuredProduct: true} ).limit(6);
+      const featuredProducts = await ApuProduct.find().sort({createdAt: -1}).limit(6);
       console.log(featuredProducts);
       res.json(featuredProducts);
     } catch (err) {
