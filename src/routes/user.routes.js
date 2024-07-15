@@ -1,36 +1,43 @@
 import { Router } from "express";
-import { 
-    loginUser, 
-    logoutUser, 
-    registerUser, 
-    forgotPassword,
-    resetPasswordGet,
-    resetPasswordPost,
-    verifyUser,
-    googleAuth
+import {
+  loginUser,
+  logoutUser,
+  registerUser,
+  forgotPassword,
+  resetPasswordGet,
+  resetPasswordPost,
+  verifyUser,
+  googleAuth,
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-import { getShopData, getWebData } from "../controllers/customization.controller.js";
-import { addItemToCart, clearCart, getCart, updateCart } from "../controllers/cart.controllers.js";
-import { createOrder, getAllOrders, getMyOrders, getOrderById, updateOrderToDelivered, updateOrderToPaid } from "../controllers/order.controllers.js";
-import { createShippingAddress, deleteShippingAddress, getShippingAddressById, getUserShippingAddresses, updateShippingAddress } from "../controllers/shippingAddress.controller.js";
+import {
+  getShopData,
+  getWebData,
+} from "../controllers/customization.controller.js";
 
+import {
+  addToCart,
+  getCart,
+  removeFromCart,
+} from "../controllers/cart.controllers.js";
+import { createProduct, deleteProduct, getFeaturedProducts, getProductById, getProducts, updateProduct } from "../controllers/apu_product_controller.js";
+import { addToFavorites } from "../controllers/favorite.controller.js";
 
-const router = Router()
+const router = Router();
 
-router.route("/register").post(registerUser)
+router.route("/register").post(registerUser);
 
-router.route("/login").post(loginUser)
+router.route("/login").post(loginUser);
 
-router.route('/auth/google').post(googleAuth);
+router.route("/auth/google").post(googleAuth);
 
-router.route("/verify/:userId/:uniqueString").get(verifyUser)
+router.route("/verify/:userId/:uniqueString").get(verifyUser);
 
-router.route("/forgot-password").post(forgotPassword)
+router.route("/forgot-password").post(forgotPassword);
 
-router.route("/reset-password/:userId/:token").get(resetPasswordGet)
+router.route("/reset-password/:userId/:token").get(resetPasswordGet);
 
-router.route("/reset-password/:userId/:token").post(resetPasswordPost)
+router.route("/reset-password/:userId/:token").post(resetPasswordPost);
 
 //secured routes
 // router.route("/logout").post(verifyJWT,  logoutUser)
@@ -46,12 +53,35 @@ router.route("/reset-password/:userId/:token").post(resetPasswordPost)
 // router.route("/history").get(verifyJWT, getWatchHistory)
 
 
+// routes from apu
+router.route("/get-web-data").get(getWebData);
+
+router.route("/shop-data/:shop").get(getShopData);
+
+router.route("/").post(verifyJWT, addToCart).get(verifyJWT, getCart);
+
+router.route("/:productId").delete(verifyJWT, removeFromCart);
+
+
+
+router.route('/add-product').post(createProduct )
+router.route('/update-product/:id').put(updateProduct )
+router.route('/delete-product/:id').delete(deleteProduct )
+router.route('/get-products').get(getProducts )
+router.route('/get-product/:id').get(getProductById )
+
+router.route('/featured-products').get(getFeaturedProducts )
+
 
 
 // routes from apu
 router.route('/get-web-data').get(getWebData)
 
 
+router.route('/add-cart').post(verifyJWT, addToCart )
+router.route('/get-cart').get(verifyJWT, getCart )
 
 
-export default router
+router.route('/add-favorite').post(verifyJWT, addToFavorites )
+
+export default router;
