@@ -70,7 +70,7 @@ web_modules/
 .yarn-integrity
 
 # dotenv environment variables file
-# .env
+.env
 # .env.test
 # .env.production
 
@@ -119,3 +119,5 @@ dist
 
 # End of https://mrkandreev.name/snippets/gitignore-generator/#Node
 .DS_Store
+config.json
+.env
