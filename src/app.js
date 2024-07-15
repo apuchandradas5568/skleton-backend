@@ -21,12 +21,24 @@ app.use('/api/v1/products', productRoutes);
 export default app;
 
 
+
 // import express from "express"
 // import cors from "cors"
 // import cookieParser from "cookie-parser"
 // const bodyParser = require('body-parser');
 
 // const app = express()
+
+//routes import
+import userRouter from './routes/user.routes.js'
+import adminRouter from './routes/admin.routes.js'
+import promotionRouter from './routes/promotion.routes.js'
+
+//routes declaration
+app.use("/api/v1/users", userRouter)
+app.use("/api/v1/admin", adminRouter)
+app.use("/api/v1/promotion",promotionRouter);
+
 
 // app.use(cors({
 //     origin: process.env.CORS_ORIGIN,
