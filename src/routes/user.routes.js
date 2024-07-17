@@ -58,7 +58,7 @@ router.route("/get-web-data").get(getWebData);
 
 router.route("/shop-data/:shop").get(getShopData);
 
-router.route("/").post(verifyJWT, addToCart).get(verifyJWT, getCart);
+router.route("/").post(verifyJWT,addToCart).get(verifyJWT, getCart);
 
 router.route("/:productId").delete(verifyJWT, removeFromCart);
 
