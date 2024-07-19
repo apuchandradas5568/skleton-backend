@@ -33,6 +33,7 @@ const addToFavorites = asyncHandler(async (req, res) => {
 // Remove a product from user's favorites
 const removeFromFavorites = asyncHandler(async (req, res) => {
   const { productId } = req.params;
+  // console.log(productId);
   const user = await User.findById(req.user._id);
 
   if (!user) {

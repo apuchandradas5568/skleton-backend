@@ -12,6 +12,7 @@ app.use(cors({
     origin: 'http://localhost:5173', 
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials:true
   }));
 
 app.use(express.json());
@@ -31,13 +32,14 @@ export default app;
 import userRouter from './routes/user.routes.js'
 import adminRouter from './routes/admin.routes.js'
 import promotionRouter from './routes/promotion.routes.js'
+import addressRouter from './routes/address.routes.js'
 
 //routes declaration
 
 app.use("/api/v1/users", userRouter)
 app.use("/api/v1/admin", adminRouter)
 app.use("/api/v1/promotion",promotionRouter);
-
+app.use("/api/v1/shipping",addressRouter);
 
 // app.use(cors({
 //     origin: process.env.CORS_ORIGIN,
