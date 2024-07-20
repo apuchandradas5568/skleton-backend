@@ -12,8 +12,6 @@ export const addProduct = async (req, res) => {
   }
 };
 
-
-
 // Fetch all products
 export const getAllProducts = async (req, res) => {
   try {

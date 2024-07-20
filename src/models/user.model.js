@@ -31,6 +31,7 @@ const userSchema = new Schema(
       {
         product: { type: mongoose.Schema.Types.ObjectId, ref: "Apu-Product" },
         quantity: { type: Number, required: true, default: 0 },
+        size:{type:String,required:true,trim:true,default:"defaultsize"}
       },
     ],
     favorites: [
